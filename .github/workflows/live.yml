@@ -3,47 +3,66 @@ name: Merge Fellas YouTube Live
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   stream:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+
+    # 2h 15m = 135 minutes
+    timeout-minutes: 140
 
     steps:
       - name: Install FFmpeg and gdown
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg python3-pip
-          pip3 install gdown
+          python3 -m pip install --upgrade gdown
 
-      - name: Download video from Google Drive
+      - name: Download Google Drive video
         run: |
-          gdown "https://drive.google.com/uc?id=1tw8qKjW-ifhjkgY9bs0SLX7-Ua3pSmvm" -O video.mp4
+          gdown --fuzzy \
+            "https://drive.google.com/file/d/12BAfo2NkevbH125Vc0vx0i-Jb1xqLMLN/view?usp=sharing" \
+            -O video.mp4
 
-      - name: Check video
+      - name: Verify video
         run: |
           ls -lh video.mp4
-          ffprobe -v error -show_entries format=duration \
-          -of default=noprint_wrappers=1 video.mp4
+          ffprobe -v error \
+            -show_entries stream=codec_name,width,height,r_frame_rate \
+            -show_entries format=duration \
+            -of default=noprint_wrappers=1 \
+            video.mp4
 
       - name: Start YouTube Live
         env:
           STREAM_KEY: ${{ secrets.YOUTUBE_STREAM_KEY }}
+
         run: |
-          ffmpeg \
-          -re \
-          -stream_loop -1 \
-          -i video.mp4 \
-          -c:v libx264 \
-          -preset veryfast \
-          -b:v 4500k \
-          -maxrate 4500k \
-          -bufsize 9000k \
-          -r 30 \
-          -g 60 \
-          -keyint_min 60 \
-          -pix_fmt yuv420p \
-          -c:a aac \
-          -b:a 128k \
-          -ar 44100 \
-          -f flv \
-          "rtmps://a.rtmps.youtube.com/live2/${STREAM_KEY}"
+          timeout 8100s ffmpeg \
+            -hide_banner \
+            -loglevel warning \
+            -re \
+            -stream_loop -1 \
+            -i video.mp4 \
+            -vf "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2" \
+            -c:v libx264 \
+            -preset veryfast \
+            -b:v 4500k \
+            -maxrate 4500k \
+            -bufsize 9000k \
+            -r 30 \
+            -g 60 \
+            -keyint_min 60 \
+            -sc_threshold 0 \
+            -pix_fmt yuv420p \
+            -c:a aac \
+            -b:a 128k \
+            -ar 44100 \
+            -ac 2 \
+            -f flv \
+            "rtmps://a.rtmps.youtube.com/live2/${STREAM_KEY}"
+
+          echo "2 hours 15 minutes completed."
+          echo "YouTube Live has ended."
