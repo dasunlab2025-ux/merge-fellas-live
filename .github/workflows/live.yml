@@ -10,10 +10,10 @@ jobs:
   stream:
     runs-on: ubuntu-latest
 
-    # 2h 15m = 135 minutes
     timeout-minutes: 140
 
     steps:
+
       - name: Install FFmpeg and gdown
         run: |
           sudo apt-get update
@@ -22,13 +22,14 @@ jobs:
 
       - name: Download Google Drive video
         run: |
-          gdown --fuzzy \
-            "https://drive.google.com/file/d/12BAfo2NkevbH125Vc0vx0i-Jb1xqLMLN/view?usp=sharing" \
+          gdown \
+            "https://drive.google.com/uc?id=12BAfo2NkevbH125Vc0vx0i-Jb1xqLMLN" \
             -O video.mp4
 
       - name: Verify video
         run: |
           ls -lh video.mp4
+
           ffprobe -v error \
             -show_entries stream=codec_name,width,height,r_frame_rate \
             -show_entries format=duration \
