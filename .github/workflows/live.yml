@@ -34,7 +34,7 @@ jobs:
             -show_entries stream=codec_name,width,height,r_frame_rate \
             -show_entries format=duration \
             -of default=noprint_wrappers=1 \
-            -video.mp4
+            video.mp4
 
       - name: Start YouTube Live
         env:
