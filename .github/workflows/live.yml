@@ -23,7 +23,7 @@ jobs:
       - name: Download Google Drive video
         run: |
           gdown \
-            "https://drive.google.com/uc?id=12BAfo2NkevbH125Vc0vx0i-Jb1xqLMLN" \
+            "https://drive.google.com/uc?id=1UdqutgJ4lfc_ZAKUxW4woKt51uMCjc_U" \
             -O video.mp4
 
       - name: Verify video
@@ -34,7 +34,7 @@ jobs:
             -show_entries stream=codec_name,width,height,r_frame_rate \
             -show_entries format=duration \
             -of default=noprint_wrappers=1 \
-            video.mp4
+            -video.mp4
 
       - name: Start YouTube Live
         env:
